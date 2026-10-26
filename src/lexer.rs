@@ -1,7 +1,6 @@
 use crate::position::Position;
 use crate::token::{Node, Token};
 use crate::keywords;
-use crate::keywords::KEYWORDS;
 use crate::token::Token::{DIV, MINUS, MUL, PLUS};
 
 //Defines what a Lexer looks like

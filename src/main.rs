@@ -15,7 +15,7 @@ fn main() {
     //Testing purposes
     let mut lexer = Lexer{
         file_name: "sdfs".parse().unwrap(),
-        text: "6 5 5".parse().unwrap(),
+        text: "1 + 1 + 2".parse().unwrap(),
         position: Position{index: -1, line: 0, column: -1, file_name: "asdad".parse().unwrap(), ftxt: "asdfasd".parse().unwrap() },
         current_char: None
     };
