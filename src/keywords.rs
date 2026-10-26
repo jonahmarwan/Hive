@@ -1,18 +1,32 @@
+
+//Number type
 pub static DIGITS: &str = "0123456789";
-pub static ALPHABETIC: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+//Letters-only type
+pub static ALPHABETIC: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+
+//Letters and Numbers type
 pub static ALPHANUMERIC: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
-pub static KEYWORDS: [&'static str; 7] = [
+//Keywords
+pub static KEYWORDS: [&'static str; 8] = [
     "def",
     "let",
     "lambda",
     "func",
     "constant",
     "immutable",
-    "mutable"
+    "mutable",
+    "pure"
 ];
 
-pub static T_KEYWORD: &str = "KEYWORD";
-pub static T_IDENTIFIER: &str = "IDENTIFIER";
+//Keywords type belonging to the list above
+pub const T_KEYWORD: &str = "KEYWORD";
 
-pub static T_PI: &str = "PI";
+//Identifier type (any word that is not a keyword)
+pub const T_IDENTIFIER: &str = "IDENTIFIER";
+
+//Pi type
+pub const T_PI: &str = "PI";
+
+pub const T_NUMBER: &str = "NUMBER";

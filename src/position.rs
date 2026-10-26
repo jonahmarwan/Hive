@@ -1,4 +1,6 @@
 
+
+//Defines what a position looks like
 pub struct Position {
     pub index: i32,
     pub(crate) line: i32,
@@ -8,6 +10,7 @@ pub struct Position {
 }
 
 impl Position{
+    //advances position one-step
     pub fn advance(&mut self, current_char: Option<char>) {
         self.index += 1;
         self.column += 1;
@@ -17,6 +20,7 @@ impl Position{
             self.column = 0;
         }
     }
+    //clones position
     pub fn copy(&mut self) -> Position {
         return Position{
             index: self.index,
