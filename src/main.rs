@@ -1,6 +1,7 @@
 use crate::lexer::Lexer;
 use crate::parser::Parser;
 use crate::position::Position;
+use crate::codegen::Codegen;
 
 mod token;
 mod lexer;
@@ -15,7 +16,7 @@ fn main() {
     //Testing purposes
     let mut lexer = Lexer{
         file_name: "sdfs".parse().unwrap(),
-        text: "1 + 1 + 2".parse().unwrap(),
+        text: "5 + 7 + 3 + 9 + 19".parse().unwrap(),
         position: Position{index: -1, line: 0, column: -1, file_name: "asdad".parse().unwrap(), ftxt: "asdfasd".parse().unwrap() },
         current_char: None
     };
@@ -23,6 +24,7 @@ fn main() {
 
     let mut p = Parser::new(toks);
 
-    let stub = p.parse_expression();
-    println!("{:?}", stub)
+    let stub = p.parse_expression().expect("failed to parse expression");
+
+    Codegen::exec(&stub);
 }
