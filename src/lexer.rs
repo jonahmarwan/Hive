@@ -1,3 +1,5 @@
+use std::fs;
+
 use crate::position::Position;
 use crate::token::{Node, Token};
 use crate::keywords;
@@ -6,17 +8,21 @@ use crate::token::Token::{DIV, MINUS, MUL, PLUS};
 //Defines what a Lexer looks like
 pub struct Lexer {
     pub(crate) file_name: String,
-    pub(crate) text: String,
     pub(crate) position: Position,
     pub(crate) current_char: Option<char>,
 }
 
 impl Lexer {
     //Move in Position and justify current_char to the new index
+
+    pub fn text(&mut self) -> String {
+        let t = fs::read_to_string(&self.file_name).unwrap_or_default();
+        t
+    }
     pub fn advance(&mut self){
         self.position.advance(self.current_char);
-        if self.position.index < self.text.chars().count() as i32 {
-            self.current_char = self.text.chars().nth(self.position.index as usize);
+        if self.position.index < self.text().chars().count() as i32 {
+            self.current_char = self.text().chars().nth(self.position.index as usize);
         } else {
             self.current_char = None;
         }
