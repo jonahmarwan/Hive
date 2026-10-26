@@ -23,7 +23,6 @@ fn main() {
     };
 
     let toks = lexer.make_token();
-    lexer.text();
     let mut p = Parser::new(toks);
 
     let stub = p.parse_expression().expect("failed to parse expression");

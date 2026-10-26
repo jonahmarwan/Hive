@@ -4,7 +4,7 @@ use inkwell::module::Module;
 use inkwell::values::IntValue;
 use inkwell::OptimizationLevel;
 
-use crate::ast::{ASTNode, ASTNodeType};
+use crate::{ast::{ASTNode, ASTNodeType}, token::Token};
 
 pub struct Codegen<'ctx> {
     pub context: &'ctx Context,
@@ -15,13 +15,20 @@ pub struct Codegen<'ctx> {
 impl <'ctx> Codegen<'ctx> {
     pub fn compile_expr (&self, expr: &ASTNode) -> IntValue<'ctx> {
         match expr._type {
-            ASTNodeType::ConstantExpression => self.context.i32_type().const_int(expr.value.value.parse::<u64>().unwrap(), false),
+            ASTNodeType::Literal => self.context.i32_type().const_int(expr.value.value.parse::<u64>().unwrap(), false),
             ASTNodeType::BinaryExpression => {
                 let left = self.compile_expr(expr.left_child.as_deref().unwrap());
                 let right = self.compile_expr(expr.right_child.as_deref().unwrap());
 
-                self.builder.build_int_add(left, right, "addtmp").unwrap()
-            } 
+                match expr.value._type {
+                    Token::PLUS => self.builder.build_int_add(left, right, "addtmp").unwrap(),
+                    Token::MINUS => self.builder.build_int_sub(left, right, "subtmp").unwrap(),
+                    Token::DIV => self.builder.build_int_signed_div(left, right, "divtmp").unwrap(),
+                    Token::MUL => self.builder.build_int_mul(left, right, "multmp").unwrap(),
+                    _ => {self.builder.build_int_add(left, right, "addtmp").unwrap()}
+                }
+            },
+            _ => self.context.i32_type().const_int(expr.value.value.parse::<u64>().unwrap(), false)
         }
     }
    pub fn compile_program(&self, ast: &ASTNode) {

@@ -12,5 +12,8 @@ pub struct ASTNode {
 #[derive(Debug)]
 pub enum ASTNodeType {
     BinaryExpression,
-    ConstantExpression
+    Literal,
+    Identifier,
+    Assignment,
+    IdenDeclarator
 }

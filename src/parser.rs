@@ -1,4 +1,4 @@
-use crate::{ast::ASTNodeType::{BinaryExpression, ConstantExpression}, token::{Node, Token::{self, EOF}}};
+use crate::{ast::ASTNodeType::{BinaryExpression, Literal}, token::{Node, Token::{self, EOF}}};
 use crate::ast::{ASTNode};
 pub struct Parser {
     pub tokens: Vec<Node>,
@@ -31,13 +31,13 @@ impl Parser {
     }
     fn get_number_node(&mut self) -> Result<ASTNode, String> {
         if matches!(self.current_token()._type, Token::NUMBER) {
-            return Result::Ok(ASTNode { _type: ConstantExpression, value: self.current_token().clone(), left_child: None, right_child: None});
+            return Result::Ok(ASTNode { _type: Literal, value: self.current_token().clone(), left_child: None, right_child: None});
         }
         Err(String::from("Number expected"))
     }
     fn get_operator_node(&mut self) -> Result<ASTNode, String> {
-        if matches!(self.current_token()._type, Token::PLUS) {
-            return Result::Ok(ASTNode { _type: ConstantExpression, value: self.current_token().clone(), left_child: None, right_child: None});
+        if matches!(self.current_token()._type, Token::PLUS | Token::MINUS | Token::DIV | Token::MUL) {
+            return Result::Ok(ASTNode { _type: Literal, value: self.current_token().clone(), left_child: None, right_child: None});
         }
         Err(String::from("Operator expected"))
     }
