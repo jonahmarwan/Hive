@@ -27,5 +27,6 @@ fn main() {
 
     let stub = p.parse_expression().expect("failed to parse expression");
 
+    println!("{:?}", stub);
     Codegen::exec(&stub);
 }

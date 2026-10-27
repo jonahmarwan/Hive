@@ -36,19 +36,38 @@ impl Parser {
         Err(String::from("Number expected"))
     }
     fn get_operator_node(&mut self) -> Result<ASTNode, String> {
-        if matches!(self.current_token()._type, Token::PLUS | Token::MINUS | Token::DIV | Token::MUL) {
+        if matches!(self.current_token()._type, Token::PLUS | Token::MINUS) {
             return Result::Ok(ASTNode { _type: Literal, value: self.current_token().clone(), left_child: None, right_child: None});
         }
         Err(String::from("Operator expected"))
     }
+    fn parse_term(&mut self) -> Result<ASTNode, String> {
+       let mut left_node = self.get_number_node()?;
+       self.advance();
+
+        while matches!(self.current_token()._type, Token::MUL | Token::DIV) {
+            let operator = ASTNode {
+                _type: Literal,
+                value: self.current_token().clone(),
+                left_child: None,
+                right_child: None
+            };
+
+            self.advance();
+            let right_node = self.get_number_node()?;
+
+            left_node = ASTNode { _type: BinaryExpression, value: operator.value, left_child: Some(Box::new(left_node)), right_child: Some(Box::new(right_node))}
+        }
+        Result::Ok(left_node)
+    }
     pub fn parse_expression(&mut self) -> Result<ASTNode, String> {
-        let mut left_node = self.get_number_node()?;
+        let mut left_node = self.parse_term()?;
         self.advance();
 
         while let Ok(operator )= self.get_operator_node() {
             self.advance();
 
-            let right_node = self.get_number_node()?;
+            let right_node = self.parse_term()?;
             self.advance();
 
             left_node = ASTNode { 
