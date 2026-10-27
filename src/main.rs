@@ -23,10 +23,10 @@ fn main() {
     };
 
     let toks = lexer.make_token();
+    println!("{:?}", toks.clone());
     let mut p = Parser::new(toks);
 
     let stub = p.parse_expression().expect("failed to parse expression");
 
-    println!("{:?}", stub);
     Codegen::exec(&stub);
 }

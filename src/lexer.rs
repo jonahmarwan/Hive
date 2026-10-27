@@ -34,14 +34,25 @@ impl Lexer {
         while self.current_char != None {
             if let Some(c) = self.current_char {
                 match c {
-                    '+' => tokens.push(Node::new(PLUS, "+".to_string())),
-                    '-' => tokens.push(Node::new(MINUS, "-".to_string())),
-                    '/' => tokens.push(Node::new(DIV, "/".to_string())),
-                    '*' => tokens.push(Node::new(MUL, "*".to_string())),
+                    '+' => {
+                        tokens.push(Node::new(PLUS, "+".to_string()));
+                        self.advance();
+                    },
+                    '-' => {
+                        tokens.push(Node::new(MINUS, "-".to_string()));
+                        self.advance();
+                    },
+                    '/' => {
+                        tokens.push(Node::new(DIV, "/".to_string()));
+                        self.advance();
+                    },
+                    '*' => {
+                        tokens.push(Node::new(MUL, "*".to_string()));
+                        self.advance();
+                    },
                     _ if c.is_alphabetic() || c.is_ascii_digit() || c == '_' => tokens.push(self.read_identifier()),
-                    _ => {}
+                    _ => {self.advance();}
                 }
-                self.advance();
             }
         }
         tokens
@@ -51,11 +62,17 @@ impl Lexer {
         let mut iden_string = String::new();
         // let pos_start = self.position.copy();
         let mut _type = Token::UNDEFINED;
-
-        while self.current_char != None && self.current_char.unwrap_or(' ').is_alphanumeric() || self.current_char.unwrap_or(' ') == '_' {
-            iden_string.push(self.current_char.unwrap());
+        
+        
+        while let Some(c) = self.current_char {
+        if c.is_alphanumeric() || c == '_' {
+            iden_string.push(c);
             self.advance();
+        } else {
+            break;
         }
+    }
+
 
         if keywords::KEYWORDS.contains(&iden_string.as_str()) {
             _type = Token::KEYWORD;
