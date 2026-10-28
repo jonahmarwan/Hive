@@ -1,9 +1,11 @@
+use crate::runtime::RuntimeValue;
+
 
 // Define what a Token looks like
 #[derive(Debug, Clone)]
 pub struct Node {
     pub _type: Token,
-    pub value: String,
+    pub value: RuntimeValue,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -16,12 +18,13 @@ pub enum Token{
     NUMBER,
     MUL,
     DIV,
+    ASSIGNMENT,
     UNDEFINED
 }
 
 impl Node {
     //Create a new Token
-    pub fn new(_type: Token, value: String) -> Node {
+    pub fn new(_type: Token, value: RuntimeValue) -> Node {
         let token = Node {_type, value };
         token
     }

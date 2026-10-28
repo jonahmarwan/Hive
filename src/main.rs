@@ -2,7 +2,10 @@ use crate::lexer::Lexer;
 use crate::parser::Parser;
 use crate::position::Position;
 use crate::codegen::Codegen;
+use crate::symbol_table::{Symbol, SymbolTable};
+use std::collections::HashMap;
 use std::env;
+use std::hash::Hash;
 
 mod token;
 mod lexer;
@@ -12,6 +15,7 @@ mod parser;
 mod codegen;
 mod ast;
 mod runtime;
+mod symbol_table;
 
 fn main() {
     //Testing purposes
@@ -24,9 +28,16 @@ fn main() {
 
     let toks = lexer.make_token();
     println!("{:?}", toks.clone());
+
     let mut p = Parser::new(toks);
 
-    let stub = p.parse_expression().expect("failed to parse expression");
+    let stub = p.parse_statement().expect("failed to parse expression");
+    println!("{:?}", stub);
+
+    let mut global_scope: HashMap<String, symbol_table::Symbol> = HashMap::new();
+    let mut scope_stack = vec![global_scope];
+    let mut symb_table = SymbolTable::new(scope_stack);
+
 
     Codegen::exec(&stub);
 }

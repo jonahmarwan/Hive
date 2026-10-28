@@ -9,7 +9,7 @@ pub static ALPHABETIC: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVW
 pub static ALPHANUMERIC: &str = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
 //Keywords
-pub static KEYWORDS: [&'static str; 8] = [
+pub static KEYWORDS: [&'static str; 10] = [
     "def",
     "let",
     "lambda",
@@ -17,7 +17,9 @@ pub static KEYWORDS: [&'static str; 8] = [
     "constant",
     "immutable",
     "mutable",
-    "pure"
+    "pure",
+    "as",
+    "int"
 ];
 
 //Keywords type belonging to the list above

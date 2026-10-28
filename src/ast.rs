@@ -1,6 +1,6 @@
 use crate::{token::Node};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ASTNode {
     pub _type: ASTNodeType,
     pub value: Node,
@@ -9,7 +9,7 @@ pub struct ASTNode {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ASTNodeType {
     BinaryExpression,
     Literal,

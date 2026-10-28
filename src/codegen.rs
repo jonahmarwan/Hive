@@ -4,7 +4,7 @@ use inkwell::module::Module;
 use inkwell::values::IntValue;
 use inkwell::OptimizationLevel;
 
-use crate::{ast::{ASTNode, ASTNodeType}, token::Token};
+use crate::{ast::{ASTNode, ASTNodeType}, runtime::{self, RuntimeValue}, symbol_table::{self, Symbol, SymbolTable}, token::Token};
 
 pub struct Codegen<'ctx> {
     pub context: &'ctx Context,
@@ -15,7 +15,17 @@ pub struct Codegen<'ctx> {
 impl <'ctx> Codegen<'ctx> {
     pub fn compile_expr (&self, expr: &ASTNode) -> IntValue<'ctx> {
         match expr._type {
-            ASTNodeType::Literal => self.context.i32_type().const_int(expr.value.value.parse::<u64>().unwrap(), false),
+            ASTNodeType::Literal => {
+                match &expr.value.value {
+                    RuntimeValue::String(s) => {
+                        self.context.i32_type().const_int(s.parse::<u64>().unwrap(), false)
+                    },
+                    RuntimeValue::Int(i) => {
+                        self.context.i32_type().const_int(*i as u64, false)
+                    }
+                    _ => panic!("unsupported literal value"),
+                }
+            },
             ASTNodeType::BinaryExpression => {
                 let left = self.compile_expr(expr.left_child.as_deref().unwrap());
                 let right = self.compile_expr(expr.right_child.as_deref().unwrap());
@@ -28,9 +38,40 @@ impl <'ctx> Codegen<'ctx> {
                     _ => {self.builder.build_int_add(left, right, "addtmp").unwrap()}
                 }
             },
-            _ => self.context.i32_type().const_int(expr.value.value.parse::<u64>().unwrap(), false)
+            _ => {
+                    match &expr.value.value {
+                    RuntimeValue::String(s) => {
+                        self.context.i32_type().const_int(s.parse::<u64>().unwrap(), false)
+                    }
+                    _ => panic!("unsupported literal value"),
+                }
+            }
         }
     }
+    /* 
+    pub fn compile_statement(&self, statement: &ASTNode, symb_table: symbol_table::SymbolTable) {
+        let symbol: symbol_table::Symbol;
+        match statement._type {
+            ASTNodeType::IdenDeclarator => {
+                if let RuntimeValue::String(s) = &statement.value.value {
+                    if matches!(s.as_str(), "def") {
+                        symbol.mutability = false;
+                    } else {
+                        symbol.mutability = true;
+                    }
+                }
+            },
+            ASTNodeType::Assignment => {
+                if let Some(current_scope) = symb_table.scope_stack.last_mut() {
+                    current_scope.insert(symbol.name, symbol);
+                }
+            },
+            ASTNodeType::Identifier => {
+            },
+            _ => {}
+        }
+    }
+    */
    pub fn compile_program(&self, ast: &ASTNode) {
         let i32_type = self.context.i32_type();
         
