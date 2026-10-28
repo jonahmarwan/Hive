@@ -111,7 +111,12 @@ impl <'ctx> Codegen<'ctx> {
 
         let result_value = self.compile_statement(ast, symb_table);
         let return_arg = result_value.as_ref().map(|v| v as &dyn BasicValue);
-        self.builder.build_return(return_arg).unwrap();
+
+        if !matches!(result_value, None){
+            self.builder.build_return(return_arg).unwrap();
+        } else {
+            self.builder.build_return(Some(&i32_type.const_int(1, false))).unwrap();
+        }
     }
     pub fn exec(expr: &ASTNode, symb_table: symbol_table::SymbolTable) -> Result<(), Box<dyn std::error::Error>>{
             
