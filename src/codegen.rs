@@ -1,9 +1,12 @@
-use inkwell::builder::Builder;
+use std::collections::HashMap;
+
+use inkwell::{builder::Builder, values::BasicValue};
 use inkwell::context::Context;
 use inkwell::module::Module;
 use inkwell::values::IntValue;
 use inkwell::OptimizationLevel;
 
+use crate::ast::ASTNodeType::{Assignment, IdenDeclarator};
 use crate::{ast::{ASTNode, ASTNodeType}, runtime::{self, RuntimeValue}, symbol_table::{self, Symbol, SymbolTable}, token::Token};
 
 pub struct Codegen<'ctx> {
@@ -29,7 +32,7 @@ impl <'ctx> Codegen<'ctx> {
             ASTNodeType::BinaryExpression => {
                 let left = self.compile_expr(expr.left_child.as_deref().unwrap());
                 let right = self.compile_expr(expr.right_child.as_deref().unwrap());
-
+                
                 match expr.value._type {
                     Token::PLUS => self.builder.build_int_add(left, right, "addtmp").unwrap(),
                     Token::MINUS => self.builder.build_int_sub(left, right, "subtmp").unwrap(),
@@ -48,31 +51,54 @@ impl <'ctx> Codegen<'ctx> {
             }
         }
     }
-    /* 
-    pub fn compile_statement(&self, statement: &ASTNode, symb_table: symbol_table::SymbolTable) {
-        let symbol: symbol_table::Symbol;
+    
+    pub fn compile_statement(&self, statement: &ASTNode, mut symb_table: symbol_table::SymbolTable) -> Option<IntValue<'ctx>>{
         match statement._type {
-            ASTNodeType::IdenDeclarator => {
-                if let RuntimeValue::String(s) = &statement.value.value {
-                    if matches!(s.as_str(), "def") {
-                        symbol.mutability = false;
-                    } else {
-                        symbol.mutability = true;
-                    }
-                }
-            },
-            ASTNodeType::Assignment => {
-                if let Some(current_scope) = symb_table.scope_stack.last_mut() {
-                    current_scope.insert(symbol.name, symbol);
-                }
-            },
-            ASTNodeType::Identifier => {
-            },
+            ASTNodeType::BinaryExpression | ASTNodeType::Literal => {
+                return Some(self.compile_expr(statement))
+            }
             _ => {}
         }
+
+        if matches!(statement._type, IdenDeclarator) {
+            let mut symbol = symbol_table::Symbol::new();
+            if let RuntimeValue::String(ref s) = statement.value.value {
+                match s.clone().as_str() {
+                    "def" => {
+                        symbol.mutability = false;
+                    },
+                    _ => {
+
+                    }
+                }
+                let assignment = statement.left_child.clone().expect("");
+                if matches!(assignment._type, Assignment) {
+                    let identifier = assignment.left_child.expect("").clone();
+                    let expression = self.compile_expr(&assignment.right_child.expect("None"));  
+
+                    if let RuntimeValue::String(ref s) = identifier.value.value {
+                        symbol.name = s.clone();
+                        //replace with type-checking
+                        if let Some(val) = expression.get_sign_extended_constant() {
+                            symbol.value = RuntimeValue::Int(val);
+                            if let Some(curr) = symb_table.scope_stack.last_mut() {
+                                curr.insert(symbol.name.clone(), symbol);
+                                println!("{:?}", symb_table.scope_stack.last_mut().expect("").iter().last());
+                                return None
+                            }
+                        }
+                    }
+                    //error handling 
+                }
+                //error handling
+            }
+            // error handling
+        }
+        // error handling
+        None
     }
-    */
-   pub fn compile_program(&self, ast: &ASTNode) {
+    
+   pub fn compile_program(&self, ast: &ASTNode, symb_table: symbol_table::SymbolTable) {
         let i32_type = self.context.i32_type();
         
         // Define a function that takes no arguments and returns an i32: fn main() -> i32
@@ -83,11 +109,11 @@ impl <'ctx> Codegen<'ctx> {
         let basic_block = self.context.append_basic_block(function, "entry");
         self.builder.position_at_end(basic_block);
 
-        let result_value = self.compile_expr(ast);
-
-        self.builder.build_return(Some(&result_value)).unwrap();
+        let result_value = self.compile_statement(ast, symb_table);
+        let return_arg = result_value.as_ref().map(|v| v as &dyn BasicValue);
+        self.builder.build_return(return_arg).unwrap();
     }
-    pub fn exec(expr: &ASTNode) -> Result<(), Box<dyn std::error::Error>>{
+    pub fn exec(expr: &ASTNode, symb_table: symbol_table::SymbolTable) -> Result<(), Box<dyn std::error::Error>>{
             
         let context = Context::create();
         let codegen = Codegen {
@@ -96,7 +122,7 @@ impl <'ctx> Codegen<'ctx> {
             builder: context.create_builder(),
         };
 
-        codegen.compile_program(expr);
+        codegen.compile_program(expr, symb_table);
 
         /* 
         println!("--- Generated LLVM IR ---");

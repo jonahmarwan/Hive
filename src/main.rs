@@ -27,17 +27,21 @@ fn main() {
     };
 
     let toks = lexer.make_token();
-    println!("{:?}", toks.clone());
+    
+    // print statements are for debugging purposes
+    
+    //println!("{:?}", toks.clone());
 
     let mut p = Parser::new(toks);
 
     let stub = p.parse_statement().expect("failed to parse expression");
-    println!("{:?}", stub);
+    // println!("{:?}", stub);
 
     let mut global_scope: HashMap<String, symbol_table::Symbol> = HashMap::new();
     let mut scope_stack = vec![global_scope];
     let mut symb_table = SymbolTable::new(scope_stack);
 
 
-    Codegen::exec(&stub);
+    Codegen::exec(&stub, symb_table);
+
 }

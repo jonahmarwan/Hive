@@ -29,3 +29,8 @@ pub struct Symbol {
 }
 
 
+impl Symbol {
+    pub fn new() -> Self {
+        Self { name:  String::from(""), value: runtime::RuntimeValue::Nil, mutability: false }
+    }
+}
