@@ -95,7 +95,7 @@ impl <'ctx> Codegen<'ctx> {
        }  
     }
 
-    pub fn compile_statement(&self, statement: &ASTNode, mut symb_table: symbol_table::SymbolTable) -> Option<BasicValueEnum>{
+    pub fn compile_statement(&self, statement: &ASTNode, mut symb_table: &mut symbol_table::SymbolTable) -> Option<BasicValueEnum>{
         match statement._type {
             ASTNodeType::BinaryExpression => {
                 return Some(self.compile_operation(statement))
@@ -125,22 +125,33 @@ impl <'ctx> Codegen<'ctx> {
                 let assignment = statement.left_child.clone().expect("");
                 if matches!(assignment._type, Assignment) {
                     let identifier = assignment.left_child.expect("").clone();
-                    let expression = self.compile_operation(&assignment.right_child.expect("None"));  
+                    let expression = self.compile_statement(&assignment.right_child.expect("None"), &mut symb_table);  
 
                     if let RuntimeValue::String(ref s) = identifier.value.value {
                         symbol.name = s.clone();
                         //replace with type-checking
-                        match expression.as_basic_value_enum() {
-                                BasicValueEnum::IntValue(int_val) => {
+                        match expression.expect("No expression") {
+                            BasicValueEnum::IntValue(int_val) => {
 
                                 if let Some(val) = int_val.get_sign_extended_constant() {
                                     symbol.value = RuntimeValue::Int(val);
                                     if let Some(curr) = symb_table.scope_stack.last_mut() {
                                         curr.insert(symbol.name.clone(), symbol);
-                                        println!("{:?}", symb_table.scope_stack.last_mut().expect("").iter().last());
+                                        println!("{:?}", curr.iter().last());
                                         return None
                                     }
                                 }
+                            },
+                            BasicValueEnum::ArrayValue(s) => {
+                                if let Some(val) = s.as_const_string() {
+                                    symbol.value = RuntimeValue::String(String::from(str::from_utf8(val).expect("Valid UTF-8")));
+
+                                    if let Some(curr) = symb_table.scope_stack.last_mut() {
+                                        curr.insert(symbol.name.clone(), symbol);
+                                        println!("{:?}", curr.iter().last());
+                                        return None
+                                    }
+                                }      
                             },
                             _ => {
                                 return None
@@ -157,7 +168,7 @@ impl <'ctx> Codegen<'ctx> {
         None
     }
     
-   pub fn compile_program(&self, ast: &ASTNode, symb_table: symbol_table::SymbolTable) {
+   pub fn compile_program(&self, ast: &ASTNode,mut symb_table: symbol_table::SymbolTable) {
         let i32_type = self.context.i32_type();
         
         // Define a function that takes no arguments and returns an i32: fn main() -> i32
@@ -168,7 +179,7 @@ impl <'ctx> Codegen<'ctx> {
         let basic_block = self.context.append_basic_block(function, "entry");
         self.builder.position_at_end(basic_block);
 
-        let result_value = self.compile_statement(ast, symb_table);
+        let result_value = self.compile_statement(ast, &mut symb_table);
         let return_arg  = result_value.as_ref().map(|v| v as &dyn BasicValue<'_>);
 
         match result_value {
@@ -195,7 +206,7 @@ impl <'ctx> Codegen<'ctx> {
 
         codegen.compile_program(expr, symb_table);
 
-        
+
         /* 
         println!("--- Generated LLVM IR ---");
         codegen.module.print_to_stderr();

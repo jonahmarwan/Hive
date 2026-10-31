@@ -134,6 +134,16 @@ impl Parser {
                                     let rhs = self.parse_expression().expect("Invalid Assignment");
                                     operator.right_child = Some(Box::new(rhs));
                                     left_node.left_child = Some(Box::new(operator));
+                                } else if matches!(self.current_token()._type, Token::LQUOTATION) {
+                                    let rhs = match self.parse_statement() {
+                                        Ok(string) => {
+                                            operator.right_child = Some(Box::new(string));
+                                            left_node.left_child = Some(Box::new(operator));
+                                        },
+                                        Err(e) => {
+                                            return Err(e)
+                                        }
+                                    };
                                 }
                             }
                         }      
