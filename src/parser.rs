@@ -1,4 +1,5 @@
-use crate::{ast::ASTNodeType::{Assignment, BinaryExpression, IdenDeclarator, Identifier, Literal, StringLiteral}, token::{Node, Token::{self, EOF, IDENTIFIER, NUMBER, RQUOTATION}}};
+
+use crate::{ast::ASTNodeType::{Assignment, BinaryExpression, BooleanType, IdenDeclarator, Identifier, Literal, StringLiteral}, token::{Node, Token::{self, EOF, IDENTIFIER, NUMBER, RQUOTATION}}};
 use crate::ast::{ASTNode};
 use crate::runtime::RuntimeValue;
 
@@ -101,7 +102,7 @@ impl Parser {
             return self.parse_expression();
         } else if matches!(self.current_token()._type, Token::KEYWORD) {
             let mut left_node: ASTNode = ASTNode{
-                _type: IdenDeclarator,
+                _type: BooleanType,
                 value: self.current_token(),
                 left_child: None,
                 right_child: None
@@ -148,7 +149,15 @@ impl Parser {
                             }
                         }      
                     },
-                    _ => {}
+                    "true" => {
+                        return Ok(ASTNode { _type: BooleanType, value: self.current_token(), left_child: None, right_child: None })
+                    },
+                    "false" => {
+                        return Ok(ASTNode { _type: BooleanType, value: self.current_token(), left_child: None, right_child: None })
+                    }
+                    _ => {
+                        return Err(String::from("Unknown Keyword"))
+                    }
                 }
             }
             return Result::Ok(left_node)

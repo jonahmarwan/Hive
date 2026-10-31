@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::fmt::Alignment::Right;
 
 use inkwell::targets::RelocMode::DynamicNoPic;
 use inkwell::{builder::Builder, values::BasicValue};
@@ -8,7 +7,7 @@ use inkwell::module::Module;
 use inkwell::values::{ArrayValue, BasicValueEnum, IntValue};
 use inkwell::OptimizationLevel;
 
-use crate::ast::ASTNodeType::{Assignment, IdenDeclarator};
+use crate::ast::ASTNodeType::{Assignment, BooleanType, IdenDeclarator};
 use crate::{ast::{ASTNode, ASTNodeType}, runtime::{self, RuntimeValue}, symbol_table::{self, Symbol, SymbolTable}, token::Token};
 
 pub struct Codegen<'ctx> {
@@ -107,7 +106,20 @@ impl <'ctx> Codegen<'ctx> {
             ASTNodeType::StringLiteral => {
                 let stringvalue = self.compile_literal_string(statement);
                 return Some(stringvalue.expect("No string").as_basic_value_enum())
-            }
+            },
+            ASTNodeType::BooleanType => {
+                if let RuntimeValue::Boolean(ref s) = statement.value.value {
+                    match s{
+                        true => {
+                        return Some(BasicValueEnum::IntValue(self.context.bool_type().const_int(1, false)))  
+                        },
+                        false => {
+                            return Some(BasicValueEnum::IntValue(self.context.bool_type().const_int(0, false)))
+                        },
+                        _ => {}
+                    }
+                }
+            },
             _ => {}
         }
 
@@ -184,6 +196,8 @@ impl <'ctx> Codegen<'ctx> {
 
         match result_value {
             Some(BasicValueEnum::IntValue(int_val)) => {
+                
+                println!("{:?}", result_value);
                 self.builder.build_return(Some(&int_val)).unwrap();
             },
             Some(BasicValueEnum::ArrayValue(_array_val)) => {

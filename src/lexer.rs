@@ -104,6 +104,11 @@ impl Lexer {
         if let RuntimeValue::String(s) = &mut iden_string {
             if keywords::KEYWORDS.contains(&s.as_str()) {
                 _type = Token::KEYWORD;
+                if matches!(s.as_str(), "true") {
+                    iden_string = RuntimeValue::Boolean(true);
+                } else if matches!(s.as_str(), "false") {
+                    iden_string = RuntimeValue::Boolean(false);
+                }
             } else if s.chars().all(char::is_numeric) {
                 _type = Token::NUMBER;
                 iden_string = RuntimeValue::Int(s.parse().unwrap());
