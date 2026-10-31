@@ -1,4 +1,4 @@
-use crate::{ast::ASTNodeType::{Assignment, BinaryExpression, IdenDeclarator, Identifier, Literal}, token::{Node, Token::{self, EOF, IDENTIFIER, NUMBER}}};
+use crate::{ast::ASTNodeType::{Assignment, BinaryExpression, IdenDeclarator, Identifier, Literal, StringLiteral}, token::{Node, Token::{self, EOF, IDENTIFIER, NUMBER, RQUOTATION}}};
 use crate::ast::{ASTNode};
 use crate::runtime::RuntimeValue;
 
@@ -142,6 +142,29 @@ impl Parser {
                 }
             }
             return Result::Ok(left_node)
+        } else if matches!(self.current_token()._type, Token::LQUOTATION) {
+            self.advance();
+            if matches!(self.current_token()._type, IDENTIFIER) {
+                let mut string = ASTNode {
+                    _type: Literal,
+                    value: self.current_token(),
+                    left_child: None,
+                    right_child: None
+                };
+                self.advance();
+                if matches!(self.current_token()._type, RQUOTATION) {
+                    self.advance();
+
+                    let mut left_node = ASTNode { _type: StringLiteral, value: string.value, left_child: None, right_child: None };
+                    return Ok(left_node)
+                }
+                return Result::Err(String::from("Closing quotation not found"))
+            } else if matches!(self.current_token()._type, RQUOTATION) {
+                self.advance();
+                return Ok(ASTNode { _type: StringLiteral, value: Node { _type: IDENTIFIER, value: RuntimeValue::Nil }, left_child: None, right_child: None })    
+
+            }
+            return Result::Err(String::from("Closing quotation not found"))
         }
         Result::Err(String::from("Invalid keyword"))
     }

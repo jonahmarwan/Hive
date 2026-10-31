@@ -2,9 +2,9 @@ use std::fs;
 
 use crate::position::Position;
 use crate::runtime::RuntimeValue::{self, String};
-use crate::token::{Node, Token};
+use crate::token::{self, Node, Token};
 use crate::keywords;
-use crate::token::Token::{ASSIGNMENT, DIV, MINUS, MUL, PLUS};
+use crate::token::Token::{ASSIGNMENT, DIV, MINUS, MUL, PLUS, SEMICOLON, LQUOTATION, RQUOTATION};
 use std::string;
 
 //Defines what a Lexer looks like
@@ -35,6 +35,7 @@ impl Lexer {
     //Creates the list of Tokens
     pub fn make_token(&mut self) -> Vec<Node> {
         let mut tokens: Vec<Node> = Vec::new();
+        let mut is_quote = false;
         self.advance();
         while self.current_char != None {
             if let Some(c) = self.current_char {
@@ -58,8 +59,23 @@ impl Lexer {
                     '=' => {
                         tokens.push(Node::new(ASSIGNMENT, RuntimeValue::String("=".to_string())));
                         self.advance();
-                    }
-                    _ if c.is_alphabetic() || c.is_ascii_digit() || c == '_' => tokens.push(self.read_identifier()),
+                    },
+                    ';' => {
+                        tokens.push(Node::new(SEMICOLON, RuntimeValue::String(";".to_string())));
+                        self.advance();
+                    },
+                    '"' => {
+                        if !is_quote {
+                            is_quote = true;
+                            tokens.push(Node::new(LQUOTATION, RuntimeValue::String('"'.to_string())));
+                            self.advance();
+                        } else {
+                            is_quote = false;
+                            tokens.push(Node::new(RQUOTATION, RuntimeValue::String('"'.to_string())));
+                            self.advance(); 
+                        }
+                    },
+                    _ if c.is_alphabetic() || c.is_ascii_digit() || c == '_' => tokens.push(self.read_identifier(is_quote)),
                     _ => {self.advance();}
                 }
             }
@@ -67,19 +83,20 @@ impl Lexer {
         tokens
     }
     //Reads an identifier composed of multiple characters
-    pub fn read_identifier(&mut self) -> Node {
+    pub fn read_identifier(&mut self, is_quote: bool) -> Node {
         let mut iden_string = RuntimeValue::String(string::String::from(""));
         // let pos_start = self.position.copy();
         let mut _type = Token::UNDEFINED;
         
         
         while let Some(c) = self.current_char {
-        if c.is_alphanumeric() || c == '_' {
+        if c.is_alphanumeric() || c == '_' || (c.is_whitespace() && is_quote) {
             if let RuntimeValue::String(s) = &mut iden_string {
                 s.push(c);
             }
             self.advance();
-        } else {
+        } 
+        else {
             break;
         }
     }

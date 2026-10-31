@@ -30,12 +30,12 @@ fn main() {
     
     // print statements are for debugging purposes
     
-    //println!("{:?}", toks.clone());
+    println!("{:?}", toks.clone());
 
     let mut p = Parser::new(toks);
 
     let stub = p.parse_statement().expect("failed to parse expression");
-    // println!("{:?}", stub);
+    println!("{:?}", stub);
 
     let mut global_scope: HashMap<String, symbol_table::Symbol> = HashMap::new();
     let mut scope_stack = vec![global_scope];

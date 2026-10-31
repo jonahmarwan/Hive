@@ -15,5 +15,6 @@ pub enum ASTNodeType {
     Literal,
     Identifier,
     Assignment,
-    IdenDeclarator
+    IdenDeclarator,
+    StringLiteral
 }

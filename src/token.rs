@@ -19,7 +19,10 @@ pub enum Token{
     MUL,
     DIV,
     ASSIGNMENT,
-    UNDEFINED
+    UNDEFINED,
+    SEMICOLON,
+    LQUOTATION,
+    RQUOTATION
 }
 
 impl Node {
